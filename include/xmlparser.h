@@ -14,13 +14,16 @@
 
 #include "ascii.h"
 #include "utf8.h"
+#include "utf16le.h"
+#include "utf16be.h"
+
 namespace XML
 {
 	struct mapStringComp
 	{
 		bool operator() (const std::string& a, const std::string& b)
 		{
-			return a.compare(b)<0;
+			return a.compare (b) < 0;
 		}
 	};
 	class DLL_EXPORT Error : public std::exception
@@ -53,7 +56,23 @@ namespace XML
 			}
 			unexpectedErr (size_t l, const char c)
 			{
-				sprintf(msg, "Line:%u:Unexpected character: '%c' (0x%x)", l, c, c);
+				sprintf (msg, "Line:%u:Unexpected character: (0x%x)", l, c);
+			}
+	};
+	class DLL_EXPORT encodingNotSupportedErr : public Error
+	{
+		public:
+			encodingNotSupportedErr (const char* s)
+			{
+				sprintf (msg, "Encoding not supported: %s", s);
+			}
+	};
+	class DLL_EXPORT fileNotFoundErr : public Error
+	{
+		public:
+			fileNotFoundErr (const char* s)
+			{
+				sprintf (msg, "File not found: %s", s);
 			}
 	};
 #include "xmlnode.h"

@@ -1,132 +1,121 @@
 
 #include "xmlparser.h"
 
-bool ASCII::validbyte (const unsigned char c)
+const char* ASCII::name()
 {
-	if (c <= 0x7F) return true; //0xxxxxxx
+	return "ASCII";
+}
 
+bool ASCII::letter (const char* c)
+{
+	if (c[0] >= 'a' and c[0] <= 'z') return true;
+	if (c[0] >= 'A' and c[0] <= 'Z') return true;
 	return false;
 }
 
-bool ASCII::letter (const unsigned char c)
+bool ASCII::digit (const char* c)
 {
-	if (c >= 'a' and c <= 'z') return true;
-
-	if (c >= 'A' and c <= 'Z') return true;
-
-	return false;
+	return (c[0] >= '0' and c[0] <= '9');
 }
 
-bool ASCII::digit (const unsigned char c)
+bool ASCII::hexdigit (const char* c)
 {
-	return (c >= '0' and c <= '9');
+	return ASCII::digit (c) or (c[0] >= 'a' and c[0] <= 'f') or (c[0] >= 'A' and c[0] <= 'F');
 }
 
-bool ASCII::hexdigit (const unsigned char c)
+int ASCII::toint (const char* n, size_t l)
 {
-	return ASCII::digit (c) or (c >= 'a' and c <= 'f') or (c >= 'A' and c <= 'F');
-}
-
-void ASCII::tolower (char* s)
-{
-	size_t l = strlen (s);
-
-	for (size_t i = 0; i < l; i++)
-		if (s[i] >= 'A' and s[i] <= 'Z')
-			s[i] += ('a' - 'A');
-}
-
-void ASCII::toupper (char* s)
-{
-	size_t l = strlen (s);
-
-	for (size_t i = 0; i < l; i++)
-		if (s[i] >= 'a' and s[i] <= 'z')
-			s[i] -= ('a' - 'A');
-}
-
-int ASCII::toint (const char* n)
-{
-	int slen = strlen (n);
 	int r = 0;
-	int e = 1;
+	unsigned int e = 1;
 	bool sign = (n[0] == '-');
 
-	for (int i = slen - 1; i >= sign; i--)
+	for (int i = l - 1; i >= sign; i--)
 	{
-		if (n[i] < '0' or n[i] > '9') return 0;
-
+		if (!digit (n + i)) return 0;
 		r = r + (n[i] - '0') * e;
 		e = e * 10;
 	}
-
-	if (sign) return -r;
-
-	return r;
+	return (sign) ? -r : r;
 }
 
-unsigned int ASCII::touint (const char* n)
+unsigned int ASCII::touint (const char* n, size_t l)
 {
-	int slen = strlen (n);
 	unsigned int r = 0;
-	int e = 1;
+	unsigned int e = 1;
 
-	for (int i = slen - 1; i >= 0; i--)
+	for (int i = l - 1; i >= 0; i--)
 	{
 		if (n[i] < '0' or n[i] > '9') return 0;
 
 		r = r + (n[i] - '0') * e;
 		e = e * 10;
 	}
-
 	return r;
 }
 
-int ASCII::xtoint (const char* n)
+int ASCII::xtoint (const char* n, size_t l)
 {
-	int slen = strlen (n);
 	int r = 0;
-	int e = 1;
+	unsigned int e = 1;
 	bool sign = (n[0] == '-');
 
-	for (int i = slen - 1; i >= sign; i--)
+	for (int i = l - 1; i >= sign; i--)
 	{
-		if (!hexdigit (n[i])) return 0;
-
+		if (!hexdigit (n + i)) return 0;
 		int c = n[i] - '0';
-
 		if (n[i] >= 'a' and n[i] <= 'f') c = n[i] - 'a' + 10;
-
 		if (n[i] >= 'A' and n[i] <= 'F') c = n[i] - 'A' + 10;
-
 		r += c * e;
 		e = e * 16;
 	}
+	return (sign) ? -r : r;
+}
 
-	if (sign) return -r;
+unsigned int ASCII::xtouint (const char* n, size_t l)
+{
+	unsigned int r = 0;
+	unsigned int e = 1;
 
+	for (int i = l - 1; i >= 0; i--)
+	{
+		if (!hexdigit (n + i)) return 0;
+		int c = n[i] - '0';
+		if (n[i] >= 'a' and n[i] <= 'f') c = n[i] - 'a' + 10;
+		if (n[i] >= 'A' and n[i] <= 'F') c = n[i] - 'A' + 10;
+		r += c * e;
+		e = e * 16;
+	}
 	return r;
 }
 
-unsigned int ASCII::xtouint (const char* n)
+size_t ASCII::fget (FILE* f, char* dest, size_t max)
 {
-	int slen = strlen (n);
-	int r = 0;
-	int e = 1;
+	if (max < 1) return 0;
+	dest[0] = fgetc (f);
+	return 1;
+}
 
-	for (int i = slen - 1; i >= 0; i--)
-	{
-		if (!hexdigit (n[i])) return 0;
+size_t ASCII::sget (const char* s, char* dest, size_t max)
+{
+	if (max < 1) return 0;
+	dest[0] = s[0];
+	return 1;
+}
 
-		int c = n[i] - '0';
+/*size_t ASCII::strlen(const char* s)
+{
+	return strlen(s);
+}*/
 
-		if (n[i] >= 'a' and n[i] <= 'f') c = n[i] - 'a' + 10;
+size_t ASCII::encode (size_t p, char* dest, size_t max)
+{
+	if (p > 0x7F) return 0;
+	if (max < 1) return 0;
+	dest[0] = p;
+	return 1;
+}
 
-		if (n[i] >= 'A' and n[i] <= 'F') c = n[i] - 'A' + 10;
-
-		r += c * e;
-		e = e * 16;
-	}
-
-	return r;
+size_t ASCII::decode (const char* s)
+{
+	return s[0];
 }

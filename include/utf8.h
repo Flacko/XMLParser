@@ -2,28 +2,31 @@
 #ifndef _UTF8_H_
 #define _UTF8_H_
 
-typedef unsigned char utf8_t;
-
 class DLL_EXPORT UTF8
 {
 	public:
-		static size_t fget (FILE* f, utf8_t* dest, size_t max);
-		static size_t fget (FILE* f, char* dest, size_t max);
+		static const char* name();
 
-		static size_t sget (const utf8_t* s, utf8_t* dest, size_t max);
-		static size_t sget (const utf8_t* s, char* dest, size_t max);
-		static size_t sget (const char* s, utf8_t* dest, size_t max);
+		static bool letter (const char* c) { return ASCII::letter (c); }
+		static bool digit (const char* c) { return ASCII::digit (c); }
+		static bool hexdigit (const char* c) { return ASCII::hexdigit (c); }
+
+		static int toint (const char* n, size_t l) { return ASCII::toint (n, l); }
+		static unsigned int touint (const char* n, size_t l) { return ASCII::touint (n, l); }
+		static int xtoint (const char* n, size_t l) { return ASCII::xtoint (n, l); };
+		static unsigned int xtouint (const char* n, size_t l) { return ASCII::xtouint (n, l); };
+
+		static size_t fget (FILE* f, char* dest, size_t max);
 		static size_t sget (const char* s, char* dest, size_t max);
 
-		static size_t strlen (const utf8_t* s);
-		static size_t strlen (const char*);
+		static size_t encode (size_t p, char* dest, size_t max);
+		static size_t encode (size_t p, std::string& dest);
+		static size_t decode (const char* s);
 
-		static size_t encode (size_t p, utf8_t* d, size_t max);
-		static size_t encode (size_t p, char* d, size_t max);
-
-		static bool validbyte (const utf8_t c);
-		static size_t headingbyte (const utf8_t c);
+		static const size_t maxbytes = 6;
 
 	private:
+		static size_t headingbyte (const char c);
+
 };
 #endif // UTF8_H

@@ -1,8 +1,8 @@
 
-#ifndef _ASCII_H_
-#define _ASCII_H_
+#ifndef _UTF16LE_H_
+#define _UTF16LE_H_
 
-class DLL_EXPORT ASCII
+class DLL_EXPORT UTF16LE
 {
 	public:
 		static const char* name();
@@ -22,7 +22,7 @@ class DLL_EXPORT ASCII
 		static size_t encode (size_t p, char* dest, size_t max);
 		static size_t decode (const char* s);
 
-		static const size_t maxbytes = 1;
+		static const size_t maxbytes = 4;
 };
 
-#endif // ASCII_H_
+#endif // UTF16LE

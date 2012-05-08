@@ -32,7 +32,7 @@ XML::childlist_t* XML::Node::getChildren()
 
 void XML::Node::setAtt (const char* n, const char* v)
 {
-	_att[std::string(n)] = std::string(v);
+	_att[std::string (n) ] = std::string (v);
 }
 void XML::Node::setAtt (const std::string& n, const std::string& v)
 {
@@ -46,7 +46,7 @@ XML::attmap_t* XML::Node::getAttMap()
 
 const char* XML::Node::getAtt (const char* n)
 {
-	attmap_t::iterator it = _att.find ( std::string(n) );
+	attmap_t::iterator it = _att.find (std::string (n));
 	if (it == _att.end()) return NULL;
 	return (*it).second.c_str();
 }
