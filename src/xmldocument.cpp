@@ -1,4 +1,3 @@
-
 #include "xmlparser.h"
 
 XML::Document::Document() : _baseNode (NULL), _declaration (NULL)
@@ -132,9 +131,11 @@ void XML::Document::parseFile (FILE* f, XML::Node* parent, char* c, size_t line)
 		{
 			_declaration = new XML::Node;
 			ENC::fget (f, c, 10);
-			readIdentifier <ENC> (f, c, line, _declaration->Tag);
+			std::string tag;
+			readIdentifier <ENC> (f, c, line, tag);
+			_declaration->setTag(tag);
 			//declaration nodes can only tag as 'xml'
-			if (_declaration->Tag.compare ("xml")) throw expectedErr (line, "xml");
+			if (strcmp(_declaration->getTag(),"xml")) throw expectedErr (line, "xml");
 			skipWS <ENC> (f, c, line);
 			while (isIdentifier <ENC> (c))
 			{
@@ -198,19 +199,19 @@ void XML::Document::parseFile (FILE* f, XML::Node* parent, char* c, size_t line)
 			std::string tagname;
 			readIdentifier <ENC> (f, c, line, tagname);
 			if (!parent) throw unexpectedErr (line, "closing tag");
-			if (tagname.compare (parent->Tag)) throw expectedErr (line, parent->Tag.c_str());
+			if (tagname.compare (parent->getTag())) throw expectedErr (line, parent->getTag());
 			skipWS <ENC> (f, c, line);
 			decode = ENC::decode (c);
 			if (decode != '>') throw unexpectedErr (line, decode);
 			ENC::fget (f, c, 10);
-			return parseFile <ENC> (f, parent->getParent(), c, line);
+			parseFile <ENC> (f, (XML::Node*)parent->getParent(), c, line);
 		}
 		else if (isIdentifier <ENC> (c)) // opening tag
 		{
 			XML::Node* node = new XML::Node;
 			if (parent)
 			{
-				node->setParent (parent);
+				parent->appendChild(node);
 			}
 			else if (!parent and !_baseNode)
 			{
@@ -220,8 +221,10 @@ void XML::Document::parseFile (FILE* f, XML::Node* parent, char* c, size_t line)
 			{
 				throw unexpectedErr (line, "extra root node");
 			}
-			readIdentifier <ENC> (f, c, line, node->Tag);
+			std::string tag;
+			readIdentifier <ENC> (f, c, line, tag);
 			skipWS <ENC> (f, c, line);
+			node->setTag(tag);
 
 			while (isIdentifier <ENC> (c))
 			{
@@ -235,22 +238,23 @@ void XML::Document::parseFile (FILE* f, XML::Node* parent, char* c, size_t line)
 			decode = ENC::decode (c);
 			if (decode != '>') throw unexpectedErr (line, decode); //parsing error - '>' expected
 			ENC::fget (f, c, 10);
-			return parseFile <ENC> (f, node, c, line);
+			parseFile <ENC> (f, node, c, line);
 		}
 	}
 	else // inner content
 	{
 		if (!parent) { throw unexpectedErr (line, decode); }
+		std::string inner;
 		while (decode != '<')
 		{
 			if (feof (f)) throw expectedErr (line, "closing tag");
 			if (decode == '&')
 			{
-				readEntity <ENC> (f, parent->Inner);
+				readEntity <ENC> (f, inner);
 			}
 			else
 			{
-				parent->Inner += decode;
+				inner += decode;
 			}
 			ENC::fget (f, c, 10);
 			decode = ENC::decode (c);
@@ -260,7 +264,8 @@ void XML::Document::parseFile (FILE* f, XML::Node* parent, char* c, size_t line)
 			}
 			decode = ENC::decode (c);
 		}
-		//put back the < marker so the function can read it
+		XML::Text* txt = new XML::Text;
+		txt->setText(inner);
 		parseFile <ENC> (f, parent, c, line);
 	}
 }

@@ -1,4 +1,3 @@
-
 #ifndef _XMLDOCUMENT_H_
 #define _XMLDOCUMENT_H_
 
